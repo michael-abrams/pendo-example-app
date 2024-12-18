@@ -1,0 +1,209 @@
+.wrAPPer {
+    position: absolute;
+    background-color: rgb(237, 216, 223);
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+}
+
+#login {
+    background-color: white;
+    box-shadow: 0 0 0 9999px #dab;
+    position: fixed;
+    padding: 20px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    width: 200px;
+    justify-content: space-evenly;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.2s ease, top 0.82s ease;
+    top: -100%;
+}
+#login__button {
+    margin-top: 20px;
+    flex-basis: 80%;
+}
+
+#the-button {
+    margin-left: 35px;
+    cursor: pointer !important;
+    display: inline-block;
+    border-radius: 8px;
+    box-shadow: 0 8px 0 #c5376d, 0 15px 20px rgba(0, 0, 0, 0.35);
+    transition: box-shadow 0.1s ease-in-out;
+    font-size: 50px;
+    color: #fff;
+}
+
+#the-button span {
+    display: inline-block;
+    padding: 20px 30px;
+    background-color: #ec528d;
+    background-image: -webkit-gradient(
+        linear,
+        0% 0%,
+        0% 100%,
+        from(hsla(338, 90%, 80%, 0.8)),
+        to(hsla(338, 90%, 70%, 0.2))
+    );
+    background-image: -webkit-linear-gradient(
+        hsla(338, 90%, 80%, 0.8),
+        hsla(338, 90%, 70%, 0.2)
+    );
+    background-image: -moz-linear-gradient(
+        hsla(338, 90%, 80%, 0.8),
+        hsla(338, 90%, 70%, 0.2)
+    );
+    background-image: -o-linear-gradient(
+        hsla(338, 90%, 80%, 0.8),
+        hsla(338, 90%, 70%, 0.2)
+    );
+    border-radius: 8px;
+    box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.15);
+    font-family: "Pacifico", Arial, sans-serif;
+    line-height: 1;
+    text-shadow: 0 -1px 1px rgba(175, 49, 95, 0.7);
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+#the-button:hover span {
+    background-color: #ec6a9c;
+    text-shadow: 0 -1px 1px rgba(175, 49, 95, 0.9),
+        0 0 5px rgba(255, 255, 255, 0.8);
+}
+
+#the-button:active,
+#the-button:focus {
+    box-shadow: 0 8px 0 #c5376d, 0 12px 10px rgba(0, 0, 0, 0.3);
+}
+
+#the-button:active span {
+    transform: translate(0, 4px);
+}
+.unselectable {
+    user-select: none;
+}
+
+main {
+    position: absolute;
+    top: 10%;
+    left: 5%;
+}
+#combo-lock {
+    display: inline-block;
+    position: relative;
+    margin: 50px;
+}
+#combo-lock #indicator {
+    border: 2px solid #070707;
+    border-radius: 50%;
+    height: 32px;
+    margin: 0 auto 24px;
+    overflow: hidden;
+    position: absolute;
+    right: -50px;
+    width: 32px;
+}
+#combo-lock #indicator.locked svg.unlocked {
+    transform: translate(-50%, 50%);
+}
+#combo-lock #indicator.unlocked svg.locked {
+    transform: translate(-50%, -100%);
+}
+#combo-lock #indicator.unlocked svg.unlocked {
+    transform: translate(-50%, -50%);
+}
+#combo-lock #indicator svg {
+    padding: 16px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: transform 0.25s ease;
+    width: 16px;
+}
+#combo-lock #indicator svg.locked {
+    background: #f56666;
+}
+#combo-lock #indicator svg.unlocked {
+    background: #50ef87;
+}
+#combo-lock #combination {
+    max-width: 144px;
+    border: 2px solid #070707;
+    border-radius: 4px;
+    display: flex;
+    padding: 0 4px;
+}
+#combo-lock #combination .wheel {
+    font-size: 24px;
+    padding: 0 4px;
+    text-align: center;
+}
+#combo-lock #combination .wheel .increment,
+#combo-lock #combination .wheel .decrement {
+    background: #1d242f;
+    border: 2px solid #070707;
+    border-radius: 50%;
+    cursor: pointer;
+    height: 24px;
+    position: relative;
+    transition: border-color 0.1s ease;
+    width: 24px;
+    font-size: 2px;
+}
+#combo-lock #combination .wheel .increment:active,
+#combo-lock #combination .wheel .decrement:active {
+    border-color: #fff;
+}
+#combo-lock #combination .wheel .increment.click,
+#combo-lock #combination .wheel .decrement.click {
+    border-color: #fff;
+    transition: border-color 0s ease;
+}
+#combo-lock #combination .wheel .increment img,
+#combo-lock #combination .wheel .decrement img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+}
+#combo-lock #combination .wheel .increment {
+    margin-top: -14px;
+}
+#combo-lock #combination .wheel .decrement {
+    margin-bottom: -14px;
+}
+#combo-lock #combination .wheel .digit {
+    background: #1d242f;
+    border: 2px solid #070707;
+    border-radius: 24px;
+    caret-color: #1d242f;
+    color: #fff;
+    cursor: pointer;
+    margin: 8px 0;
+    outline: none;
+    padding: 8px 0;
+    text-align: center;
+    user-select: none;
+    transition: border-color 0.1s ease;
+    width: 24px;
+    font-size: 24px;
+}
+#combo-lock #combination .wheel .digit:focus {
+    border-color: #fff;
+}
+#combo-lock #combination .wheel .digit::-webkit-inner-spin-button,
+#combo-lock #combination .wheel .digit::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+#combo-lock #combination .wheel .digit::selection {
+    background: #1d242f;
+}
