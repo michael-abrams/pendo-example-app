@@ -29,7 +29,7 @@ const departmentCookie = 'ACCOUNT-UNIQUE-ID';
 
 let email = getCookie(emailCookie);
 let department = getCookie(departmentCookie);
-let loginForm = document.getElementById('login');
+let loginForm = $('#login');
 loginForm.addEventListener('submit', function (submitEvent) {
     submitEvent.preventDefault();
     login(getLoginFormData());
