@@ -6,7 +6,20 @@
         <meta http-equiv="X-UA-Compatible" content="ie=edge" />
         <title>Test Everything</title>
         <script src="js/initPendo.js"></script>
-        <script defer src="js/app.js"></script>
+        <script>
+            let email = getCookie(emailCookie);
+            let department = getCookie(departmentCookie);
+            pendo.initialize({
+                visitor: {
+                    id: email, // Required if user is logged in
+                    email: email // email:        // Optional // role:         // Optional // You can add any additional visitor level key-values here, // as long as it's not one of the above reserved names.
+                },
+                account: {
+                    id: department, // Highly recommended
+                    name: department // name:         // Optional // planLevel:    // Optional // planPrice:    // Optional // creationDate: // Optional // You can add any additional account level key-values here, // as long as it's not one of the above reserved names.
+                }
+            });
+        </script>
     </head>
     <body>
         <div class="container">
