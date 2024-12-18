@@ -7,6 +7,8 @@
         <title>Test Everything</title>
         <script src="js/initPendo.js"></script>
         <script>
+            const emailCookie = 'VISITOR-UNIQUE-ID';
+            const departmentCookie = 'ACCOUNT-UNIQUE-ID';
             let email = getCookie(emailCookie);
             let department = getCookie(departmentCookie);
             pendo.initialize({
