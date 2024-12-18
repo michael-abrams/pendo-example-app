@@ -227,7 +227,7 @@ function deactivatePank() {
     $('#the-button').removeEventListener('click', celebrate);
 }
 function celebrate() {
-    document.location.href = 'celebrate.html';
+    document.location.href = 'pendo-example-app/celebrate.html';
 }
 
 // Helper function for dom querying
