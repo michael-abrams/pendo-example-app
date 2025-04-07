@@ -1,6 +1,8 @@
 /*****************************
  *  LOGIN FUNCTIONS
  ******************************/
+document.cookie = "name=value; SameSite=Strict; Secure";
+
 function login(userInfo = {}) {
     let { email, department } = userInfo;
     if (!email || !department) {
