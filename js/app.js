@@ -18,7 +18,7 @@ function login(userInfo = {}) {
         visitor: {
             id: email, // Required if user is logged in
             email: email, // email:        // Optional // role:         // Optional // You can add any additional visitor level key-values here, // as long as it's not one of the above reserved names.
-            language: "ban"
+            role: "ban"
         },
         account: {
             id: department, // Highly recommended
