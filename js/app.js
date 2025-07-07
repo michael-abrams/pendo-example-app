@@ -1,8 +1,6 @@
 /*****************************
  *  LOGIN FUNCTIONS
  ******************************/
-window.postMessage = function() {};
-
 function login(userInfo = {}) {
     let { email, department } = userInfo;
     if (!email || !department) {
