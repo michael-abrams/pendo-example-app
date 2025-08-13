@@ -22,7 +22,8 @@ function login(userInfo = {}) {
         account: {
             id: department, // Highly recommended
             name: department // name:         // Optional // planLevel:    // Optional // planPrice:    // Optional // creationDate: // Optional // You can add any additional account level key-values here, // as long as it's not one of the above reserved names.
-        }
+        },
+        guideMarkdown: true
     });
 }
 
