@@ -172,6 +172,25 @@
         </div>
     </div>
 
+    <!-- APP-158872 repro target #2 — the faithful one.
+         The target WRAPS A CROSS-ORIGIN IFRAME. trapFocus treats the iframe as a
+         focusable (FOCUSABLE_SELECTORS includes 'iframe'), pulls it into the cycle,
+         but its keydown listener can't see Tab events inside a cross-origin frame.
+         This is the case the code comment at building-block-guides.js:567 calls out,
+         and it mirrors Eightfold careerhub embedding cross-origin content.
+         Anchor the tooltip to #repro-target-iframe (autofocus + backdrop ON). -->
+    <div id="repro-target-iframe" class="repro-target" style="border-color:#6f42c1">
+        <h2 style="color:#6f42c1">APP-158872 — cross-origin iframe target</h2>
+        <p>Anchor the tooltip to this container. The iframe below is cross-origin, so Tab events inside it are invisible to the focus trap.</p>
+        <div class="controls">
+            <button type="button" id="iframe-before-btn">Button before iframe</button>
+            <iframe id="repro-iframe" title="cross-origin embed"
+                    src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                    width="320" height="180" style="border:1px solid #999"></iframe>
+            <button type="button" id="iframe-after-btn">Button after iframe</button>
+        </div>
+    </div>
+
     <div class="grid-container">
         <div class="grid-item top-left" data-pendo-tooltip="Top Left Tooltip">
             Top Left
