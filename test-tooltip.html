@@ -120,6 +120,24 @@
             transform: scale(1.05);
         }
         
+        /* APP-158872 repro: a tooltip target that CONTAINS focusable children.
+           This is the condition missing from the grid items below (plain divs),
+           and the one that activates trapFocus's target-tabbing path. */
+        .repro-target {
+            max-width: 1200px;
+            margin: 0 auto 30px;
+            padding: 20px;
+            background-color: #fff;
+            border: 2px dashed #dc3545;
+            border-radius: 10px;
+        }
+        .repro-target h2 { margin: 0 0 6px; font-size: 18px; color: #dc3545; }
+        .repro-target p { margin: 0 0 14px; color: #555; font-size: 14px; }
+        .repro-target .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .repro-target a, .repro-target button, .repro-target input {
+            padding: 8px 14px; font-size: 14px;
+        }
+
         .top-left { background-color: #d4edda; border-color: #28a745; }
         .top-center { background-color: #d1ecf1; border-color: #17a2b8; }
         .top-right { background-color: #fff3cd; border-color: #ffc107; }
@@ -138,6 +156,22 @@
         <p>Click on any section to test tooltips in different screen areas</p>
     </div>
     
+    <!-- APP-158872 repro target.
+         Anchor a multi-step tooltip guide to #repro-target with:
+           - "Autofocus this step" ENABLED
+           - block-out UI / backdrop ENABLED (show target above backdrop)
+         The buggy path only fires because this target WRAPS focusable elements
+         (the link/button/input below). Tag the container, not the buttons. -->
+    <div id="repro-target" class="repro-target" data-pendo-tooltip="APP-158872 Repro Target">
+        <h2>APP-158872 — focus-trap repro target</h2>
+        <p>Anchor the tooltip to this container (autofocus + backdrop on). Then Tab and watch the console focus log — focus should bounce back to the guide container / close button instead of reaching Back/Next.</p>
+        <div class="controls">
+            <a href="#repro" id="repro-link">A focusable link</a>
+            <button type="button" id="repro-button">A focusable button</button>
+            <input type="text" id="repro-input" placeholder="A focusable input" />
+        </div>
+    </div>
+
     <div class="grid-container">
         <div class="grid-item top-left" data-pendo-tooltip="Top Left Tooltip">
             Top Left
@@ -172,5 +206,33 @@
             Bottom Right
         </div>
     </div>
+
+    <!-- APP-158872: focus monitor. Logs every focus change (incl. into the guide's
+         shadow root) so you can see focus snapping back to #pendo-guide-container
+         instead of advancing to Back/Next while tabbing. Open the console. -->
+    <script>
+        (function () {
+            function describe(el) {
+                if (!el) return '(none)';
+                var id = el.id ? '#' + el.id : '';
+                var cls = el.className && typeof el.className === 'string'
+                    ? '.' + el.className.trim().split(/\s+/).join('.') : '';
+                return el.tagName.toLowerCase() + id + cls;
+            }
+            function active() {
+                var el = document.activeElement;
+                // walk into open shadow roots to find the real focused node (guide lives in a shadow root)
+                while (el && el.shadowRoot && el.shadowRoot.activeElement) el = el.shadowRoot.activeElement;
+                return el;
+            }
+            document.addEventListener('focusin', function () {
+                console.log('[APP-158872] focus →', describe(active()));
+            }, true);
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Tab') console.log('[APP-158872] Tab' + (e.shiftKey ? '+Shift' : '') + ' pressed; active =', describe(active()));
+            }, true);
+            console.log('[APP-158872] focus monitor active — trigger the guide and Tab through the repro step.');
+        })();
+    </script>
 </body>
-</html> 
+</html>
