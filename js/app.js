@@ -11,25 +11,8 @@ function login(userInfo = {}) {
     setCookie(departmentCookie, department);
     hideLoginModal();
 
-    // this sure would be a great place to handle any identification stuff
     pendo.initialize({
-        visitor: {
-            id: email, // Required if user is logged in
-            email: email, // email:        // Optional // role:         // Optional // You can add any additional visitor level key-values here, // as long as it's not one of the above reserved names.
-            role: "ban",
-            URL: "google.com",
-            customDisplayName: "John Doe",
-        },
-        account: {
-            id: department, // Highly recommended
-            name: department, // name:         // Optional // planLevel:    // Optional // planPrice:    // Optional // creationDate: // Optional // You can add any additional account level key-values here, // as long as it's not one of the above reserved names.
-            customDisplayName: "John Doe",
-        }
-    });
-
-    pendo.teardown();
-
-    pendo.initialize({
+        syntheticClicks: { elementRemoval: true },
         visitor: {
             id: email, // Required if user is logged in
             email: email, // email:        // Optional // role:         // Optional // You can add any additional visitor level key-values here, // as long as it's not one of the above reserved names.
