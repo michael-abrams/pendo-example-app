@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APP-159523 — VDS host CSS (position:static) repro</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Real Pendo dev agent, so a LIVE building-block guide targeted to this app will also render here. -->
+    <script src="js/initPendo.js"></script>
+    <script>
+        pendo.initialize({
+            visitor: { id: 'app-159523-repro' },
+            account: { id: 'app-159523-repro' }
+        });
+    </script>
+    <style>
+        body { margin: 0; padding: 24px; font-family: Arial, sans-serif; background: #f5f5f5; }
+        .back-button { position: absolute; top: 16px; right: 16px; padding: 8px 14px;
+            background:#007bff; color:#fff; text-decoration:none; border-radius:5px; }
+        h1 { font-size: 20px; }
+        .legend { background:#fff; border:1px solid #ddd; border-radius:8px; padding:12px 16px; max-width:880px; }
+        .legend code { background:#eee; padding:1px 5px; border-radius:3px; }
+        .panel { background:#fff; border:1px solid #ccc; border-radius:8px; padding:16px; margin:18px 0; max-width:880px; }
+        .panel h3 { margin:0 0 4px; }
+        .panel .note { color:#666; font-size:13px; margin:0 0 12px; }
+        .stage { border:1px dashed #888; height:90px; position:relative; background:#fafafa; }
+
+        /* ============================================================
+           HOST PAGE CSS — simulating Goldman Sachs' application stylesheet.
+           GS reportedly forces `position: static !important` broadly. We
+           don't know the exact selector, so both variants are toggleable:
+             ?gscss=star  -> * { position: static !important }   (most aggressive)
+             ?gscss=div   -> div, span, button { position: static !important }
+             (no param)   -> host CSS OFF (baseline)
+           These rules are injected by JS below based on the query param, so
+           they can be flipped without editing the file.
+           ============================================================ */
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← Back to Main</a>
+    <h1>APP-159523 — Goldman Sachs: host <code>position: static !important</code> vs guide layout</h1>
+
+    <div class="legend">
+        <p><b>What this page proves.</b> GS's site forces <code>position: static !important</code>. That can only
+        affect a Pendo guide if the guide renders in the <b>host light DOM</b> (host CSS does <b>not</b> pierce a
+        shadow root). This page renders the SAME building-block guide mock <b>twice</b> — once in light DOM,
+        once inside an attached shadow root — so you can see exactly which path GS is on.</p>
+        <p>Toggle the host rule:
+           <a href="?gscss=star">?gscss=star</a> ·
+           <a href="?gscss=div">?gscss=div</a> ·
+           <a href="?">off</a>.
+           Current host rule: <b id="hostrule">(loading…)</b></p>
+        <p>Open the console — the logger prints computed <code>position</code> + bounding box for every subject,
+           and flags which ones are inside a shadow root.</p>
+    </div>
+
+    <!-- =========================================================================
+         GUIDE MOCK template. Mirrors the rendered building-block DOM the agent emits:
+           - button._pendo-close-guide with INLINE `position:absolute !important`
+             (from shared-services close-button-styles.js -> layout_position_type
+              -> rawValue('position','absolute !important') -> curNode.css())
+           - POLYFILL path (useFlexbox OFF): .pendo-mock-flexbox-row position:relative,
+             child .pendo-mock-flexbox-element position:absolute (NO !important), placed
+             via left/top inline offsets (flexbox-pollyfill.js). This is the path that
+             DEPENDS ON `position` and therefore breaks under position:static.
+           - NATIVE path (useFlexbox ON): display:flex; justify-content:center — no
+             position dependency, so it should survive the host rule.
+         ========================================================================= -->
+    <template id="guide-mock">
+        <div class="pendo-guide-mock" style="position:relative; border:1px solid #bbb; background:#fff; height:100%;">
+            <button class="_pendo-close-guide"
+                    style="position:absolute !important; right:12px; top:8px; width:22px; height:22px; background:#e55; border:none; color:#fff; border-radius:3px;">×</button>
+            <!-- POLYFILL row: button should sit centered via left offset -->
+            <div class="pendo-mock-flexbox-row" data-path="polyfill"
+                 style="position:relative; width:100%; height:44px;">
+                <div class="pendo-mock-flexbox-element"
+                     style="position:absolute; left:50%; top:6px; transform:translateX(-50%);">
+                    <button style="background:#39c; border:none; color:#fff; padding:6px 12px;">Polyfill-centered</button>
+                </div>
+            </div>
+            <!-- NATIVE flex row -->
+            <div class="pendo-native-flex-row" data-path="native"
+                 style="display:flex; justify-content:center; align-items:center; width:100%; height:40px;">
+                <button style="background:#3a3; border:none; color:#fff; padding:6px 12px;">Flex-centered</button>
+            </div>
+        </div>
+    </template>
+
+    <div class="panel">
+        <h3>1) Guide mock in <span style="color:#b30">LIGHT DOM</span></h3>
+        <p class="note">Host CSS reaches these nodes. Under <code>?gscss=*</code>, expect the close X to drop into
+            flow (top-left) and the polyfill button to lose centering. The native-flex button should stay centered.</p>
+        <div class="stage" id="lightHost"></div>
+    </div>
+
+    <div class="panel">
+        <h3>2) Guide mock in <span style="color:#080">SHADOW DOM</span></h3>
+        <p class="note">Host CSS cannot pierce the shadow boundary. If GS's real guide renders here, the host rule
+            is a red herring and the bug is elsewhere. Everything should stay correct regardless of the toggle.</p>
+        <div class="stage" id="shadowHost"></div>
+    </div>
+
+    <div class="panel">
+        <h3>3) WORKAROUND probe — polyfill child forced with inline <code>!important</code></h3>
+        <p class="note">If GS is on the light-DOM polyfill path, a Pendo-side fix that emits
+            <code>position:absolute !important</code> inline on layout elements should beat even
+            <code>* { position: static !important }</code> (inline !important outranks selector !important).
+            This stage applies that fix in light DOM — expect it to stay centered.</p>
+        <div class="stage" id="fixHost"></div>
+    </div>
+
+    <script>
+    (function () {
+        var params = new URLSearchParams(location.search);
+        var gscss = params.get('gscss');
+
+        // ---- inject the simulated host rule ----
+        var rules = {
+            star: '* { position: static !important; }',
+            div:  'div, span, button, a { position: static !important; }'
+        };
+        var hostStyle = document.createElement('style');
+        hostStyle.id = 'gs-host-css';
+        hostStyle.textContent = rules[gscss] || '';
+        document.head.appendChild(hostStyle);
+        document.getElementById('hostrule').textContent =
+            rules[gscss] ? rules[gscss] + '  (?gscss=' + gscss + ')' : 'OFF (baseline)';
+
+        var tmpl = document.getElementById('guide-mock');
+
+        // 1) light DOM
+        document.getElementById('lightHost').appendChild(tmpl.content.cloneNode(true));
+
+        // 2) shadow DOM
+        var shadowHost = document.getElementById('shadowHost');
+        var root = shadowHost.attachShadow({ mode: 'open' });
+        root.appendChild(tmpl.content.cloneNode(true));
+
+        // 3) light DOM + inline !important workaround on polyfill layout elements
+        var fixHost = document.getElementById('fixHost');
+        fixHost.appendChild(tmpl.content.cloneNode(true));
+        fixHost.querySelectorAll('.pendo-mock-flexbox-row').forEach(function (r) {
+            r.style.setProperty('position', 'relative', 'important');
+        });
+        fixHost.querySelectorAll('.pendo-mock-flexbox-element').forEach(function (c) {
+            c.style.setProperty('position', 'absolute', 'important');
+        });
+
+        // ---- console logger: computed position + shadow membership for every subject ----
+        function inShadow(el) {
+            var n = el;
+            while (n) { if (n.toString() === '[object ShadowRoot]') return true; n = n.parentNode || n.host; }
+            return el.getRootNode && el.getRootNode() !== document;
+        }
+        function report(label, scope) {
+            var subjects = [
+                ['close-X', scope.querySelector('._pendo-close-guide')],
+                ['polyfill-btn', scope.querySelector('.pendo-mock-flexbox-element')],
+                ['native-btn', scope.querySelector('.pendo-native-flex-row button')]
+            ];
+            console.log('%c=== ' + label + ' ===', 'font-weight:bold');
+            subjects.forEach(function (pair) {
+                var el = pair[1];
+                if (!el) return;
+                var cs = getComputedStyle(el);
+                var r = el.getBoundingClientRect();
+                console.log(
+                    pair[0].padEnd(13),
+                    'position=' + cs.position.padEnd(9),
+                    'x=' + Math.round(r.left) + ' y=' + Math.round(r.top),
+                    'shadow=' + inShadow(el)
+                );
+            });
+        }
+        setTimeout(function () {
+            console.log('%cAPP-159523 host-CSS repro — rule: ' + (rules[gscss] || 'OFF'),
+                'color:#b30;font-weight:bold');
+            report('LIGHT DOM', document.getElementById('lightHost'));
+            report('SHADOW DOM', shadowHost.shadowRoot);
+            report('WORKAROUND (inline !important, light DOM)', document.getElementById('fixHost'));
+            console.log('Interpretation: if close-X/polyfill-btn position flips to "static" only in LIGHT DOM, ' +
+                'the host rule is the cause AND GS\'s guide must be light-DOM. SHADOW DOM staying correct ' +
+                'proves the boundary protects it. WORKAROUND staying "absolute" proves inline !important wins.');
+        }, 300);
+    })();
+    </script>
+</body>
+</html>

@@ -253,5 +253,106 @@
             console.log('[APP-158872] focus monitor active — trigger the guide and Tab through the repro step.');
         })();
     </script>
+
+    <!-- APP-158872 target focus-disruptor.
+         The 2.327 regression (APP-154004) opened the guide's focus trap so that
+         tabbing past the guide pushes focus OUT onto the page's target element.
+         The bug is that the customer's app then reclaims focus from that target,
+         and the agent's fallback snaps focus back to the close (X) button — the
+         container <-> X bounce. A static page never reclaims focus, so it can't
+         reproduce. This fakes the app: the instant Pendo pushes focus onto a
+         repro target, we move it to an offscreen sink, mimicking the app taking
+         its focus back. You should then see the bounce, beatable with a fast
+         double-tab — same as the customer.
+
+         ENABLE with ?spaSteal=1  (tune reclaim delay with &stealEvery=40, in ms;
+         try 0-60ms). Watch the focus monitor logs. -->
+    <script>
+        (function () {
+            var params = new URLSearchParams(location.search);
+            if (params.get('spaSteal') !== '1') return;
+            var every = parseInt(params.get('stealEvery'), 10);
+            if (isNaN(every)) every = 40;
+
+            // offscreen element the fake "app" keeps yanking focus to
+            var sink = document.createElement('input');
+            sink.type = 'text';
+            sink.setAttribute('aria-hidden', 'true');
+            sink.id = 'fake-app-focus-sink';
+            sink.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;';
+            document.body.appendChild(sink);
+
+            // The 2.327 regression pushes focus OUT of the guide onto the page's
+            // TARGET element. The bug is the customer's app then reclaiming focus
+            // from that target. So we steal focus only when it lands on a repro
+            // target (the page side), NOT on the guide itself.
+            function isOnTarget(el) {
+                if (!el) return false;
+                var targets = ['#repro-target', '#repro-target-iframe'];
+                return targets.some(function (sel) {
+                    var t = document.querySelector(sel);
+                    return t && (t === el || t.contains(el));
+                });
+            }
+            function active() {
+                var el = document.activeElement;
+                while (el && el.shadowRoot && el.shadowRoot.activeElement) el = el.shadowRoot.activeElement;
+                return el;
+            }
+
+            // simulate the host app reclaiming focus the instant Pendo hands it to the target
+            document.addEventListener('focusin', function () {
+                var el = active();
+                if (isOnTarget(el)) {
+                    setTimeout(function () { sink.focus(); }, every);
+                }
+            }, true);
+            console.warn('[APP-158872] target focus-disruptor ARMED (' + every + 'ms delay) — fake app will reclaim focus whenever Pendo pushes it onto the target element.');
+        })();
+    </script>
+
+    <!-- APP-158872 bumper-orphan simulator.
+         Our static page never re-renders, so the target focus bumpers that trapFocus
+         injects (.pendo-before/after-target-focus-bumper) stay put — which is why the
+         page reproduces "clean". A framework SPA like Eightfold careerhub would
+         reconcile those foreign nodes away on its next render, ORPHANING the references
+         trapFocus's closure holds. This script simulates that: it watches for the
+         target bumpers and removes them shortly after insertion.
+
+         ENABLE with ?orphanBumpers=1  (optionally &orphanDelay=120 to tune the delay ms).
+         Compare the guide's Tab behavior WITH vs WITHOUT the param on the same step. -->
+    <script>
+        (function () {
+            var params = new URLSearchParams(location.search);
+            if (params.get('orphanBumpers') !== '1') return;
+            var delay = parseInt(params.get('orphanDelay'), 10);
+            if (isNaN(delay)) delay = 100;
+
+            var SELECTOR = '.pendo-before-target-focus-bumper, .pendo-after-target-focus-bumper';
+
+            function orphan(node) {
+                // mimic a framework re-render dropping our foreign node
+                setTimeout(function () {
+                    if (node && node.parentNode) {
+                        node.parentNode.removeChild(node);
+                        console.warn('[APP-158872] orphaned target bumper:', node.className, '(simulating SPA re-render after ' + delay + 'ms)');
+                    }
+                }, delay);
+            }
+
+            var obs = new MutationObserver(function (mutations) {
+                mutations.forEach(function (m) {
+                    m.addedNodes.forEach(function (n) {
+                        if (n.nodeType !== 1) return;
+                        if (n.matches && n.matches(SELECTOR)) orphan(n);
+                        // also catch bumpers added inside a subtree
+                        if (n.querySelectorAll) n.querySelectorAll(SELECTOR).forEach(orphan);
+                    });
+                });
+            });
+            obs.observe(document.documentElement, { childList: true, subtree: true });
+            console.warn('[APP-158872] bumper-orphan simulator ARMED (delay ' + delay + 'ms) — target focus bumpers will be removed after insertion.');
+        })();
+    </script>
 </body>
 </html>
