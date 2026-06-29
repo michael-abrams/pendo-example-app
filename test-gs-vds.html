@@ -8,10 +8,30 @@
     <!-- Real Pendo dev agent, so a LIVE building-block guide targeted to this app will also render here. -->
     <script src="js/initPendo.js"></script>
     <script>
-        pendo.initialize({
-            visitor: { id: 'app-159523-repro' },
-            account: { id: 'app-159523-repro' }
-        });
+            const emailCookie = 'VISITOR-UNIQUE-ID';
+            const departmentCookie = 'ACCOUNT-UNIQUE-ID';
+            let email = getCookie(emailCookie);
+            let department = getCookie(departmentCookie);
+            pendo.initialize({
+                visitor: {
+                    id: email, // Required if user is logged in
+                    email: email // email:        // Optional // role:         // Optional // You can add any additional visitor level key-values here, // as long as it's not one of the above reserved names.
+                },
+                account: {
+                    id: department, // Highly recommended
+                    name: department // name:         // Optional // planLevel:    // Optional // planPrice:    // Optional // creationDate: // Optional // You can add any additional account level key-values here, // as long as it's not one of the above reserved names.
+                }
+            });
+            function getCookie(name) {
+                var nameEQ = name + '=';
+                var ca = document.cookie.split(';');
+                for (var i = 0; i < ca.length; i++) {
+                    var c = ca[i];
+                    while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+                }
+                return null;
+            }
     </script>
     <style>
         body { margin: 0; padding: 24px; font-family: Arial, sans-serif; background: #f5f5f5; }
